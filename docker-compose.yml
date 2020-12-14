@@ -1,0 +1,73 @@
+version: '3'
+services:
+    db:
+        container_name: db
+        image: mysql:8.0.22
+        restart: on-failure
+        tty: true
+        command: ["--default-authentication-plugin=mysql_native_password"]
+        ports:
+            - 3316:3306
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        volumes:
+            - "db_app:/var/lib/mysql"
+        networks:
+            - db
+    php:
+        container_name: php-fpm
+        build:
+            context: .
+            dockerfile: ./docker/php-fpm/Dockerfile
+            args:
+                PROJECT_NAME: ${PROJECT_NAME}
+        restart: on-failure
+        tty: true
+        ports:
+            - 9000:9001
+        volumes:
+            - ./logs/symfony:/var/www/symfony/var/log:cached
+            - ./symfony:/var/www/symfony:cached
+        depends_on: 
+            - db
+        networks:
+            - db
+            - php
+    nginx:
+        container_name: nginx
+        restart: on-failure
+        tty: true
+        build:
+            context: .
+            dockerfile: ./docker/nginx/Dockerfile
+            args:
+                SERVER_NAME: ${SERVER_NAME}
+                PROJECT_NAME: ${PROJECT_NAME}
+        ports:
+            - 80:80
+            - 443:443
+        depends_on: 
+            - php
+        networks:
+            - php
+        volumes:
+            - ./logs/nginx:/var/log/nginx:cached
+            - ./symfony:/var/www/symfony:cached
+    redis:
+        container_name: redis
+        image: redis:alpine
+        restart: on-failure
+        tty: true
+        ports:
+            - 6379:6379
+        networks:
+            - php
+volumes:
+    db_app:
+
+networks:
+    db:
+    php:
