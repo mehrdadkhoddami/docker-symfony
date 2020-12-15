@@ -20,7 +20,7 @@ alias mkdir='mkdir -pv'
 # Color grep
 alias grep='grep -in'
 
-# install  colordiff package :)
+# install  colordiff package
 alias diff='colordiff'
 
 alias vi='vim'

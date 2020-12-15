@@ -7,7 +7,7 @@ services:
         tty: true
         command: ["--default-authentication-plugin=mysql_native_password"]
         ports:
-            - 3316:3306
+            - 3306:3306
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -18,19 +18,20 @@ services:
         networks:
             - db
     php:
-        container_name: php-fpm
+        container_name: php
         build:
             context: .
             dockerfile: ./docker/php-fpm/Dockerfile
             args:
                 PROJECT_NAME: ${PROJECT_NAME}
+                ENV: ${ENV}
         restart: on-failure
         tty: true
         ports:
             - 9000:9001
         volumes:
-            - ./logs/symfony:/var/www/symfony/var/log:cached
-            - ./symfony:/var/www/symfony:cached
+            - ./logs/symfony:/var/www/${PROJECT_NAME}/var/log:cached
+            - ./symfony:/var/www/${PROJECT_NAME}:cached
         depends_on: 
             - db
         networks:
@@ -55,7 +56,7 @@ services:
             - php
         volumes:
             - ./logs/nginx:/var/log/nginx:cached
-            - ./symfony:/var/www/symfony:cached
+            - ./symfony:/var/www/${PROJECT_NAME}:cached
     redis:
         container_name: redis
         image: redis:alpine

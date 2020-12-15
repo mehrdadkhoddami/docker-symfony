@@ -1,5 +1,6 @@
 FROM alpine:edge
 ARG PROJECT_NAME
+ARG ENV=prod
 
 LABEL maintainer="Mehrdad Khoddami <khoddami.me@gmail.com>"
 
@@ -38,23 +39,28 @@ RUN apk add --update --no-cache \
     unzip \
     zip \
     git \
-    jpegoptim optipng pngquant gifsicle \
+    jpegoptim \
+	optipng \
+	pngquant \
+	gifsicle \
     curl
 
 RUN echo "$(curl -sS https://composer.github.io/installer.sig) -" > composer-setup.php.sig \
         && curl -sS https://getcomposer.org/installer | tee composer-setup.php | sha384sum -c composer-setup.php.sig \
         && php composer-setup.php --install-dir=/usr/local/bin --filename=composer && rm composer-setup.php*
 
-COPY docker/php-fpm/symfony.ini /etc/php7/conf.d/
-COPY docker/php-fpm/symfony.ini /etc/php7/cli/conf.d/
+COPY docker/php-fpm/php_docker.ini /etc/php7/conf.d/
+COPY docker/php-fpm/php_docker.ini /etc/php7/cli/conf.d/
 COPY docker/php-fpm/symfony.pool.conf /etc/php7/php-fpm.d/
-COPY docker/php-fpm/php.ini /usr/local/etc/php/conf.d/docker-php-config.ini
 		
-ADD etc/aliases.sh /etc/profile.d/aliases.sh
+COPY etc/aliases.sh /etc/profile.d/aliases.sh
 
-RUN echo "alias sf='php bin/console'" >> /etc/profile.d/aliases.sh
+RUN mkdir -p /var/lib/php/session
+RUN mkdir /var/php_tmp
+
 
 CMD ["php-fpm7", "-F"]
 
 WORKDIR /var/www/${PROJECT_NAME}
+
 EXPOSE 9001
