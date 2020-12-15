@@ -1,6 +1,7 @@
 FROM alpine:edge
 ARG PROJECT_NAME
 ARG ENV=prod
+ARG USER=newuser
 
 LABEL maintainer="Mehrdad Khoddami <khoddami.me@gmail.com>"
 
@@ -51,12 +52,17 @@ RUN echo "$(curl -sS https://composer.github.io/installer.sig) -" > composer-set
 
 COPY docker/php-fpm/php_docker.ini /etc/php7/conf.d/
 COPY docker/php-fpm/php_docker.ini /etc/php7/cli/conf.d/
+RUN echo "open_basedir=/var/www/${PROJECT_NAME}/" | tee -a /etc/php7/conf.d/php_docker.ini /etc/php7/cli/conf.d/php_docker.ini 
+
 COPY docker/php-fpm/symfony.pool.conf /etc/php7/php-fpm.d/
 		
 COPY etc/aliases.sh /etc/profile.d/aliases.sh
 
 RUN mkdir -p /var/lib/php/session
 RUN mkdir /var/php_tmp
+
+RUN addgroup -g 1001 docker \
+	&& adduser -D -g '' -u 1001 -G docker ${USER}
 
 
 CMD ["php-fpm7", "-F"]

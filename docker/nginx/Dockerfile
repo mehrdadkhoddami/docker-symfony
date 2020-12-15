@@ -4,8 +4,7 @@ ARG PROJECT_NAME
 
 LABEL maintainer="Mehrdad Khoddami <khoddami.me@gmail.com>"
 
-RUN apk add --update --no-cache nginx \
-    nano
+RUN apk add --update --no-cache nginx
 
 COPY docker/nginx/nginx.conf /etc/nginx/
 COPY docker/nginx/symfony.conf /etc/nginx/conf.d/
